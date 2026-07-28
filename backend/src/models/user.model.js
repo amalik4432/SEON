@@ -24,12 +24,14 @@ userSchema.statics.hashPassword = async (password) => {
   return await bcrypt.hash(password, 10);
 };
 
-userSchema.methods.comparePassword = async (password) => {
+userSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
 userSchema.methods.createToken = (email) => {
-  return jwt.sign({ email }, process.env.JWT_SECRET);
+  return jwt.sign({ email }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 };
 
 const User = mongoose.model("user", userSchema);
