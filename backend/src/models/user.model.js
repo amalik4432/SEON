@@ -28,10 +28,16 @@ userSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-userSchema.methods.createToken = (email) => {
-  return jwt.sign({ email }, process.env.JWT_SECRET, {
-    expiresIn: "24h",
-  });
+userSchema.methods.createToken = function () {
+  return jwt.sign(
+    {
+      id: this._id,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "24h",
+    },
+  );
 };
 
 const User = mongoose.model("user", userSchema);

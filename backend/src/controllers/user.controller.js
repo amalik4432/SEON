@@ -19,20 +19,23 @@ export const createUserController = async (req, res) => {
     let user = await createUserService(email, password);
     await user.save();
     const token = await user.createToken();
-    if (!token) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Some error occured" });
-    }
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
-
-    res.status(201).json({ success: true, user, token });
+    res
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      })
+      .status(201)
+      .json({
+        success: true,
+        message: "Login successful",
+        user: {
+          id: user._id,
+          email: user.email,
+        },
+      });
   } catch (err) {
     res.status(401).json({ success: false, error: err });
   }
@@ -41,7 +44,7 @@ export const createUserController = async (req, res) => {
 export const loginUserController = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({ success: false, errors: errors.array() });
   }
   try {
     let { email, password } = req.body;
@@ -50,7 +53,7 @@ export const loginUserController = async (req, res) => {
     if (!user) {
       return res
         .status(401)
-        .json({ success: false, error: "Invalid Credentials" });
+        .json({ success: false, error: "Invalid credentials" });
     }
 
     let isPassMatched = await user.comparePassword(password);
@@ -61,22 +64,24 @@ export const loginUserController = async (req, res) => {
         .json({ success: false, message: "Invalid Credintials" });
     }
 
-    const token = await user.createToken(email);
+    const token = await user.createToken();
 
-    if (!token) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Some error occured" });
-    }
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
-
-    res.status(201).json({ user, token });
+    res
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Days
+      })
+      .status(200)
+      .json({
+        success: true,
+        message: "Login successful",
+        user: {
+          id: user._id,
+          email: user.email,
+        },
+      });
   } catch (err) {
     console.log(err);
 
