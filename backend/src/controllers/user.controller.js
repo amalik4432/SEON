@@ -1,6 +1,7 @@
 import userModel from "../models/user.model.js";
 import { createUserService } from "../services/users.service.js";
 import { validationResult } from "express-validator";
+import redisClient from "../services/redis.service.js";
 
 export const createUserController = async (req, res) => {
   const errors = validationResult(req);
@@ -14,6 +15,7 @@ export const createUserController = async (req, res) => {
     if (!email || !password) {
       throw new Error(404, "Email and Password required");
     }
+
     let user = await createUserService(email, password);
     await user.save();
     const token = await user.createToken();
@@ -84,4 +86,11 @@ export const loginUserController = async (req, res) => {
 
 export const userProfileController = (req, res) => {
   res.json({ message: "Working after Logged in", user: req.user });
+};
+
+export const logoutUserController = (req, res) => {
+  let token = req.cookies.token;
+  redisClient.set(token, "logout", "EX", 60 * 60 * 24);
+
+  res.status(200).json({ success: true, message: "Logout Successfully" });
 };
