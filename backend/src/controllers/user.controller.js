@@ -2,22 +2,32 @@ import userModel from "../models/user.model.js";
 import { createUserService } from "../services/users.service.js";
 import { validationResult } from "express-validator";
 import redisClient from "../services/redis.service.js";
+import ExpressError from "../Error/ExpressError.js";
 
-export const createUserController = async (req, res) => {
+export const createUserController = async (req, res, next) => {
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return next(new ExpressError(400, errors.array()));
+  }
+
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return next(new ExpressError(400, "Email and Password required"));
   }
 
   try {
-    const { email, password } = req.body;
+    const existingUser = await userModel.findOne({ email });
 
-    if (!email || !password) {
-      throw new Error(404, "Email and Password required");
+    if (existingUser) {
+      return next(new ExpressError(409, "User already exists"));
     }
 
-    let user = await createUserService(email, password);
+    const user = await createUserService(email, password);
+
     await user.save();
+
     const token = await user.createToken();
 
     res
@@ -25,77 +35,94 @@ export const createUserController = async (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .status(201)
       .json({
         success: true,
-        message: "Login successful",
+        message: "Account created successfully",
         user: {
           id: user._id,
           email: user.email,
         },
       });
-  } catch (err) {
-    res.status(401).json({ success: false, error: err });
+  } catch (error) {
+    if (error.code === 11000) {
+      return next(new ExpressError(409, "Email already registered"));
+    }
+
+    next(error);
   }
 };
 
-export const loginUserController = async (req, res) => {
+export const loginUserController = async (req, res, next) => {
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) {
-    return res.status(400).json({ success: false, errors: errors.array() });
+    return next(new ExpressError(400, errors.array()));
   }
+
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return next(new ExpressError(400, "Email and Password required"));
+  }
+
+  const user = await userModel.findOne({ email }).select("+password");
+
+  if (!user) {
+    return next(new ExpressError(401, "Invalid credentials"));
+  }
+
+  const isPassMatched = await user.comparePassword(password);
+
+  if (!isPassMatched) {
+    return next(new ExpressError(401, "Invalid credentials"));
+  }
+
+  const token = await user.createToken();
+
+  res
+    .cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+    .status(200)
+    .json({
+      success: true,
+      message: "Login successful",
+      user: {
+        id: user._id,
+        email: user.email,
+      },
+    });
+};
+
+export const userProfileController = async (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Working after Logged in",
+    user: req.user,
+  });
+};
+
+export const logoutUserController = async (req, res, next) => {
   try {
-    let { email, password } = req.body;
+    const token = req.cookies.token;
 
-    let user = await userModel.findOne({ email }).select("+password");
-    if (!user) {
-      return res
-        .status(401)
-        .json({ success: false, error: "Invalid credentials" });
+    if (!token) {
+      return next(new ExpressError(401, "User already logged out"));
     }
 
-    let isPassMatched = await user.comparePassword(password);
+    await redisClient.set(token, "logout", "EX", 60 * 60 * 24);
 
-    if (!isPassMatched) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid Credintials" });
-    }
-
-    const token = await user.createToken();
-
-    res
-      .cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Days
-      })
-      .status(200)
-      .json({
-        success: true,
-        message: "Login successful",
-        user: {
-          id: user._id,
-          email: user.email,
-        },
-      });
-  } catch (err) {
-    console.log(err);
-
-    res.status(401).json({ success: false, error: err });
+    res.clearCookie("token").status(200).json({
+      success: true,
+      message: "Logout Successfully",
+    });
+  } catch (error) {
+    next(error);
   }
-};
-
-export const userProfileController = (req, res) => {
-  res.json({ message: "Working after Logged in", user: req.user });
-};
-
-export const logoutUserController = (req, res) => {
-  let token = req.cookies.token;
-  redisClient.set(token, "logout", "EX", 60 * 60 * 24);
-
-  res.status(200).json({ success: true, message: "Logout Successfully" });
 };

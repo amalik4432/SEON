@@ -3,6 +3,7 @@ const router = express.Router();
 import { body } from "express-validator";
 import * as userController from "../controllers/user.controller.js";
 import { isLoggedIn } from "../middleware/auth.middleware.js";
+import { wrapAsync } from "../middleware/wrapAsync.js";
 
 router.post(
   "/register",
@@ -10,7 +11,7 @@ router.post(
   body("password")
     .isLength({ min: 3 })
     .withMessage("Password Should be atleast 3 characters Long"),
-  userController.createUserController,
+  wrapAsync(userController.createUserController),
 );
 
 router.post(
@@ -19,10 +20,15 @@ router.post(
   body("password")
     .isLength({ min: 3 })
     .withMessage("Password Should be atleast 3 characters Long"),
-  userController.loginUserController,
+  wrapAsync(userController.loginUserController),
 );
 
 router.get("/profile", isLoggedIn, userController.userProfileController);
-router.post("/logout", isLoggedIn, userController.logoutUserController);
+
+router.post(
+  "/logout",
+  isLoggedIn,
+  wrapAsync(userController.logoutUserController),
+);
 
 export default router;
