@@ -1,11 +1,12 @@
 import React from "react";
 import AppRoute from "./routes/AppRoute";
+import { UserProvider } from "./context/user.context";
 
 const App = () => {
   return (
-    <div>
+    <UserProvider>
       <AppRoute />
-    </div>
+    </UserProvider>
   );
 };
 

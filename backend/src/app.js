@@ -33,11 +33,10 @@ app.get("/", (req, res) => {
   });
 });
 
-// 404 Handler
-app.use((req, res) => {
-  res.status(404).json({
+app.use((err, req, res, next) => {
+  res.status(err.statusCode || 500).json({
     success: false,
-    message: "Route not found",
+    message: err.message || "Internal Server Error",
   });
 });
 

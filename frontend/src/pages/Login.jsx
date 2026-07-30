@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import PasswordInput from "../components/auth/PasswordInput";
 import AuthInput from "../components/auth/AuthInput";
 import AuthLayout from "../layouts/AuthLayout";
 import AuthCard from "../components/auth/AuthCard";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "../config/axios.js";
+import { UserContext } from "../context/user.context.jsx";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { setUser } = useContext(UserContext);
 
   const navigate = useNavigate();
 
@@ -23,11 +25,19 @@ export default function Login() {
       .post("/api/user/login", payload, {
         withCredentials: true,
       })
-      .then(() => {
+      .then((response) => {
+        setUser(response.data.user);
+        console.log(response.data.user);
+
         navigate("/");
       })
       .catch((err) => {
-        err.response.data;
+        navigate("/error", {
+          state: {
+            status: err.response?.status,
+            message: err.response?.data?.message,
+          },
+        });
       });
   };
 

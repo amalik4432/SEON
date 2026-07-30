@@ -126,3 +126,13 @@ export const logoutUserController = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getCurrentUserController = async (req, res) => {
+  res.status(201).json({
+    success: true,
+    user: {
+      id: req.user._id,
+      email: req.user.email,
+    },
+  });
+};

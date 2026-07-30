@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import AuthLayout from "../layouts/AuthLayout";
 import AuthCard from "../components/auth/AuthCard";
 import AuthInput from "../components/auth/AuthInput";
 import PasswordInput from "../Components/auth/PasswordInput";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "../config/axios.js";
+import { UserContext } from "../context/user.context.jsx";
 
 const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const { setUser } = useContext(UserContext);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -21,11 +23,17 @@ const Register = () => {
       .post("/api/user/register", payload, {
         withCredentials: true,
       })
-      .then(() => {
+      .then((response) => {
+        setUser(response.data.user);
         navigate("/");
       })
       .catch((err) => {
-        err.response.data;
+        navigate("/error", {
+          state: {
+            status: err.response?.status,
+            message: err.response?.data?.message,
+          },
+        });
       });
   };
 
