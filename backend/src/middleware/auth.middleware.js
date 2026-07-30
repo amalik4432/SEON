@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
 import redisClient from "../services/redis.service.js";
+import ExpressError from "../Error/ExpressError.js";
+import userModel from "../models/user.model.js";
 
 export const isLoggedIn = async (req, res, next) => {
   try {
@@ -21,9 +23,19 @@ export const isLoggedIn = async (req, res, next) => {
     }
 
     let decoded = await jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    const user = await userModel.findById(decoded.id);
+
+    if (!user) {
+      return next(new ExpressError(404, "User not found"));
+    }
+
+    req.user = user;
     next();
   } catch (err) {
-    res.status(401).json({ success: false, error: "web err" });
+    console.log(err);
+    res.status(401).json({
+      success: false,
+      error: err.message,
+    });
   }
 };

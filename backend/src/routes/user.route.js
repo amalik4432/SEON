@@ -31,4 +31,6 @@ router.post(
   wrapAsync(userController.logoutUserController),
 );
 
+router.get("/me", isLoggedIn, userController.getCurrentUserController);
+
 export default router;

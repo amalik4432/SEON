@@ -4,12 +4,7 @@ import { UserContext } from "../context/user.context";
 const Home = () => {
   const { user } = useContext(UserContext);
 
-  return (
-    <div>
-      <p> {user?.email}</p>
-      <p> {user?.id}</p>
-    </div>
-  );
+  return <div>{user ? <h1>Welcome, {user.email}</h1> : <h1>Welcome</h1>}</div>;
 };
 
 export default Home;

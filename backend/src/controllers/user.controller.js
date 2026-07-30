@@ -89,7 +89,7 @@ export const loginUserController = async (req, res, next) => {
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
-    .status(200)
+    .status(201)
     .json({
       success: true,
       message: "Login successful",
@@ -101,7 +101,7 @@ export const loginUserController = async (req, res, next) => {
 };
 
 export const userProfileController = async (req, res) => {
-  res.status(200).json({
+  res.status(201).json({
     success: true,
     message: "Working after Logged in",
     user: req.user,
@@ -118,7 +118,7 @@ export const logoutUserController = async (req, res, next) => {
 
     await redisClient.set(token, "logout", "EX", 60 * 60 * 24);
 
-    res.clearCookie("token").status(200).json({
+    res.clearCookie("token").status(201).json({
       success: true,
       message: "Logout Successfully",
     });
@@ -127,7 +127,7 @@ export const logoutUserController = async (req, res, next) => {
   }
 };
 
-export const getCurrentUserController = async (req, res) => {
+export const getCurrentUserController = (req, res) => {
   res.status(201).json({
     success: true,
     user: {
