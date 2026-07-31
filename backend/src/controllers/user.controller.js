@@ -17,42 +17,36 @@ export const createUserController = async (req, res, next) => {
     return next(new ExpressError(400, "Email and Password required"));
   }
 
-  try {
-    const existingUser = await userModel.findOne({ email });
+  const existingUser = await userModel.findOne({ email });
 
-    if (existingUser) {
-      return next(new ExpressError(409, "User already exists"));
-    }
-
-    const user = await createUserService(email, password);
-
-    await user.save();
-
-    const token = await user.createToken();
-
-    res
-      .cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      })
-      .status(201)
-      .json({
-        success: true,
-        message: "Account created successfully",
-        user: {
-          id: user._id,
-          email: user.email,
-        },
-      });
-  } catch (error) {
-    if (error.code === 11000) {
-      return next(new ExpressError(409, "Email already registered"));
-    }
-
-    next(error);
+  if (existingUser) {
+    return next(new ExpressError(409, "User already exists"));
   }
+
+  const user = await createUserService(email, password);
+
+  await user.save();
+
+  const token = await user.createToken();
+
+  delete user._doc.password;
+
+  res
+    .cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+    .status(201)
+    .json({
+      success: true,
+      message: "Account created successfully",
+      user: {
+        id: user._id,
+        email: user.email,
+      },
+    });
 };
 
 export const loginUserController = async (req, res, next) => {
@@ -82,6 +76,8 @@ export const loginUserController = async (req, res, next) => {
 
   const token = await user.createToken();
 
+  delete user._doc.password;
+
   res
     .cookie("token", token, {
       httpOnly: true,
@@ -109,22 +105,18 @@ export const userProfileController = async (req, res) => {
 };
 
 export const logoutUserController = async (req, res, next) => {
-  try {
-    const token = req.cookies.token;
+  const token = req.cookies.token;
 
-    if (!token) {
-      return next(new ExpressError(401, "User already logged out"));
-    }
-
-    await redisClient.set(token, "logout", "EX", 60 * 60 * 24);
-
-    res.clearCookie("token").status(201).json({
-      success: true,
-      message: "Logout Successfully",
-    });
-  } catch (error) {
-    next(error);
+  if (!token) {
+    return next(new ExpressError(401, "User already logged out"));
   }
+
+  await redisClient.set(token, "logout", "EX", 60 * 60 * 24);
+
+  res.clearCookie("token").status(201).json({
+    success: true,
+    message: "Logout Successfully",
+  });
 };
 
 export const getCurrentUserController = (req, res) => {
