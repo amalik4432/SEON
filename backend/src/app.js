@@ -2,8 +2,9 @@ import express from "express";
 import morgan from "morgan";
 import helmet from "helmet";
 import cors from "cors";
-import userRouter from "./routes/user.route.js";
 import cookieParser from "cookie-parser";
+import userRouter from "./routes/user.route.js";
+import projectRouter from "./routes/project.route.js";
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 console.log("yaha aya tha");
 
 app.use("/api/user", userRouter);
+app.use("/api/project", projectRouter);
 
 // Health Check
 app.get("/", (req, res) => {
