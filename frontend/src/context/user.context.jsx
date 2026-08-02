@@ -11,25 +11,25 @@ export const UserProvider = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axiosInstance
-      .get("/api/user/me", {
-        withCredentials: true,
-      })
-      .then((response) => {
-        setUser(response.data.user);
-      })
-      .catch((err) => {
-        setUser(null);
-        navigate("/error", {
-          state: {
-            status: err.response?.status,
-            message: err.response?.data?.message,
-          },
+    const getUser = async () => {
+      try {
+        const res = await axiosInstance.get("/api/user/me", {
+          withCredentials: true,
         });
-      })
-      .finally(() => {
+        setUser(res.data.user);
+      } catch (err) {
+        if (err.response?.status === 401) {
+          setUser(null);
+          navigate("/login");
+        } else {
+          console.error("Failed to fetch user:", err);
+        }
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    getUser();
   }, [navigate]);
 
   if (loading) {

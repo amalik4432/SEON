@@ -22,8 +22,6 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-console.log("yaha aya tha");
-
 app.use("/api/user", userRouter);
 app.use("/api/project", projectRouter);
 
