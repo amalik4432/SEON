@@ -120,3 +120,7 @@ The backend health endpoint is available at `GET http://localhost:3000/` and ret
 backend/     Express API, authentication, MongoDB models, Redis, and Socket.IO
 frontend/    React/Vite client application
 ```
+
+## Author
+
+Ahmad Raza.
