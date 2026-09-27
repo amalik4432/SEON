@@ -1,124 +1,122 @@
-# AI based Chat App
+# SOEN
 
-A realtime AI-powered chat application built with the MERN Stack and Google Gemini API. This project demonstrates authentication, realtime messaging, and AI-assisted conversations in a modern full-stack application.
+SOEN is a collaborative project workspace built with React, Express, MongoDB, Redis, Socket.IO, and Google Gemini. Users can register, create projects, invite collaborators, edit project files, and use `@ai` in project chat for AI-assisted responses.
 
-## 🚀 Tech Stack
+## Requirements
 
-### Frontend
-- React
-- Vite
-- Tailwind CSS
-- Axios
-- React Router
+- Node.js 18 or newer
+- npm
+- MongoDB (local or hosted, such as MongoDB Atlas)
+- Redis (local or hosted)
+- Google Gemini API key
 
-### Backend
-- Node.js
-- Express.js
-- MongoDB
-- Mongoose
-- JWT Authentication
+## Setup
 
-### AI
-- Google Gemini API
+1. Clone the repository and enter it:
 
-### Realtime
-- Socket.IO
+   ```bash
+   git clone <repository-url>
+   cd soen-main
+   ```
 
----
+2. Install dependencies:
 
-## ✨ Features
+   ```bash
+   cd backend
+   npm install
 
-- User Authentication
-- Realtime Chat
-- AI Assistant
-- Secure JWT Authentication
-- Responsive UI
-- Conversation History
+   cd ../frontend
+   npm install
+   ```
 
----
+3. Configure the backend:
 
-## 📁 Project Structure
+   ```bash
+   cd ../backend
+   copy .env.example .env
+   ```
 
-```
-ai-developer-chat/
-│
-├── backend/
-│   ├── src/
-│   ├── package.json
-│   └── .env
-│
-├── frontend/
-│   ├── src/
-│   ├── public/
-│   └── package.json
-│
-└── README.md
-```
+   On macOS/Linux, use `cp .env.example .env` instead. Fill in the values in `.env`:
 
----
+   ```env
+   PORT=3000
+   MONGODB_URI=mongodb://127.0.0.1:27017/soen
+   JWT_SECRET=replace-with-a-long-random-secret
+   GOOGLE_AI_KEY=your-google-gemini-api-key
+   REDIS_HOST=127.0.0.1
+   REDIS_PORT=6379
+   REDIS_PASSWORD=
+   ```
 
-## ⚙️ Installation
+4. Configure the frontend:
 
-### Clone Repository
+   ```bash
+   cd ../frontend
+   copy .env.example .env
+   ```
 
-```bash
-git clone <repository-url>
-cd ai-developer-chat
-```
+   On macOS/Linux, use `cp .env.example .env` instead. The default value targets the local backend:
 
-### Backend
+   ```env
+   VITE_API_URL=http://localhost:3000
+   ```
+
+## Run Locally
+
+Start the backend in one terminal:
 
 ```bash
 cd backend
-npm install
+npm start
 ```
 
-Create a `.env` file.
-
-```env
-PORT=5000
-MONGO_URI=your_mongodb_uri
-JWT_SECRET=your_secret
-GEMINI_API_KEY=your_gemini_api_key
-CLIENT_URL=http://localhost:5173
-```
-
-Start the backend.
-
-```bash
-npm run dev
-```
-
----
-
-### Frontend
+Start the frontend in a second terminal:
 
 ```bash
 cd frontend
-npm install
-```
-
-Start the frontend.
-
-```bash
 npm run dev
 ```
 
----
+Open the URL printed by Vite, usually `http://localhost:5173`.
 
-## 📌 Roadmap
+## Production Build
 
-- [ ] Authentication
-- [ ] Realtime Chat
-- [ ] Google Gemini Integration
-- [ ] Chat History
-- [ ] Markdown Support
-- [ ] Image Upload
-- [ ] Code Highlighting
-- [ ] Deployment
+Build the frontend with:
 
----
+```bash
+cd frontend
+npm run build
+```
 
-## 📄 License
+To preview the production build locally:
 
-This project is for learning purposes.
+```bash
+npm run preview
+```
+
+## Useful Commands
+
+| Directory  | Command           | Purpose                            |
+| ---------- | ----------------- | ---------------------------------- |
+| `backend`  | `npm start`       | Start the API and Socket.IO server |
+| `frontend` | `npm run dev`     | Start the Vite development server  |
+| `frontend` | `npm run build`   | Create a production build          |
+| `frontend` | `npm run lint`    | Run ESLint                         |
+| `frontend` | `npm run preview` | Preview the production build       |
+
+## API Entry Point
+
+The backend health endpoint is available at `GET http://localhost:3000/` and returns `Hello World!` when the server is running.
+
+## Environment Files
+
+- `backend/.env.example` documents server, database, Redis, authentication, and AI configuration.
+- `frontend/.env.example` documents the API and Socket.IO URL.
+- Never commit `.env` files or API keys.
+
+## Project Structure
+
+```text
+backend/     Express API, authentication, MongoDB models, Redis, and Socket.IO
+frontend/    React/Vite client application
+```
